@@ -176,12 +176,12 @@ struct compile_output
     // if (!completed), then the header-unit path the compiler is waiting on if any,
     // else if (completed && !error_occurred), then the pointer to the returned bmi_file if any, else
     // nullptr
-    string bmi_file_or_header_unit_path;
+    string header_unit_path_or_bmi_file;
 
     // if (!completed), then the name of the module the compiler is waiting on if any,
     // else if (completed && !error_occurred), then the pointer to the returned objectFile if any, else
     // nullptr
-    string object_file_or_module_name;
+    string module_name_or_object_file;
 
     // if (completed && !error_occurred), then the logical_name of exported module if any.
     string logical_name;
@@ -207,37 +207,25 @@ string get_object_file(string bmi_file);
 The compiler calls ```new_compile``` function passing it the
 compile_command for the module file.
 The compile command, however, does not include any dependencies.
-If the compiler sees an import of a module, it sets the ```object_file_or_module_name``` string
+If the compiler sees an import of a module, it sets the ```module_name_or_object_file``` string
 of the ```compile_output``` return value.
-Same is the case for header-units but as mentioned in declaration,
-bmi_file_or_header_unit_path is used.
-The build-system now will preserve the ```compiler_state``` and
+If the compiler sees an import of a header unit, it sets the ```header_unit_path_or_bmi_file``` string
+of the ```compile_output``` return value.
+The build system now will preserve the ```compiler_state``` and
 will check if the required file is already built, or it needs to be built, or it is being built.
 Only after the file is available,
-the build-system will call ```resume_compile``` function passing it the bmi_file.
+the build system will call ```resume_compile``` function passing it the BMI file.
 ```resume_compile``` is called until file has no dependency not provided and the compilation
 succeeds.
-If only the bmi_file is returned and no objectFile on compilation completion,
-the build-system assumes that the compiler is using 2-phase model.
-In this case,
-on a different thread it will call ```get_object_file``` to get objectFile.
+If only the BMI file is returned and no object file on compilation completion,
+the build system assumes that the compiler is using ```two phase``` model.
+In this case, it will later call ```get_object_file``` to get the object file.
 Distinction between the two models is discussed here:
 https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192.
 The argument ```get_file_contents``` is used by the compiler to get file contents of any file
 instead of reading itself.
 This means that a file does not get read twice for different compilations.
-As compilation completes, build-system will write ifc and object files to the memory as-well.
-
-This solution does not have the drawbacks of the above solution with the added
-advantages that:
-
-1) Files are directly compiled instead of being scanned first before compilation.
-2) Build-system keeps the files in the cache.
-   As build-systems spend a lot of time reading from disk,
-   an often used technique to improve speed is to launch more
-   threads than supported by hardware.
-   But this might not be an effective solution anymore as building modules is not
-   embarrassingly parallel.
+As compilation completes, build-system will write ifc and object files to the disk as-well.
 
 # Acknowledgements
 
