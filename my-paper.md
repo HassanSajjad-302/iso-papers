@@ -174,13 +174,13 @@ The compiler calls ```new_compile``` function passing it the
 compile_command for the module file.
 The compile command, however, does not include any dependencies.
 If the compiler sees an import of a module, it sets the ```module_name_or_object_file``` string
-of the ```compile_output``` return value.
+of the ```compile_output``` return value to the name of the module.
 If the compiler sees an import of a header unit, it sets the ```header_unit_path_or_bmi_file``` string
-of the ```compile_output``` return value.
+of the ```compile_output``` return value to the path of the header unit.
 The build system now will preserve the ```compiler_state``` and
 will check if the required file is already built, or it needs to be built, or it is being built.
 Only after the file is available,
-the build system will call ```resume_compile``` function passing it BMI file.
+the build system will call ```resume_compile``` function passing it the BMI file.
 ```resume_compile``` is called until the file has no dependency not provided and the compilation
 completes.
 If only the BMI file is returned and no object file on compilation completion,

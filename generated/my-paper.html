@@ -632,15 +632,16 @@ does not include any dependencies. If the compiler sees an import of a
 module, it sets the
 <code class="sourceCode default">module_name_or_object_file</code>
 string of the <code class="sourceCode default">compile_output</code>
-return value. If the compiler sees an import of a header unit, it sets
-the <code class="sourceCode default">header_unit_path_or_bmi_file</code>
+return value to the name of the module. If the compiler sees an import
+of a header unit, it sets the
+<code class="sourceCode default">header_unit_path_or_bmi_file</code>
 string of the <code class="sourceCode default">compile_output</code>
-return value. The build system now will preserve the
-<code class="sourceCode default">compiler_state</code> and will check if
-the required file is already built, or it needs to be built, or it is
-being built. Only after the file is available, the build system will
-call <code class="sourceCode default">resume_compile</code> function
-passing it BMI file.
+return value to the path of the header unit. The build system now will
+preserve the <code class="sourceCode default">compiler_state</code> and
+will check if the required file is already built, or it needs to be
+built, or it is being built. Only after the file is available, the build
+system will call <code class="sourceCode default">resume_compile</code>
+function passing it the BMI file.
 <code class="sourceCode default">resume_compile</code> is called until
 the file has no dependency not provided and the compilation completes.
 If only the BMI file is returned and no object file on compilation
