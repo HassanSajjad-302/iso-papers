@@ -573,7 +573,7 @@ how do their design decisions compare to yours?</p>
 <h2 data-number="6.1" id="what-are-the-tradeoffs"><span class="header-section-number">6.1</span> What are the tradeoffs?<a href="#what-are-the-tradeoffs" class="self-link"></a></h2>
 <p>Memory consumption of such an approach could be higher than the
 current approach. That is because more
-<code class="sourceCode default">compilerState</code> and the cached
+<code class="sourceCode default">compiler_state</code> and the cached
 files need to be kept in the memory.</p>
 <p>However, this can be alleviated by the following:</p>
 <p>In some build systems today, related files are grouped together as
@@ -582,9 +582,9 @@ files need to be kept in the memory.</p>
 other <code class="sourceCode default">target</code>. Such build systems
 can alleviate the higher memory consumption by ordering the compilation
 of files of the dependency before the dependent target. This way only
-the <code class="sourceCode default">compileState</code> of the files of
-the dependency target need to be kept in the memory.
-<code class="sourceCode default">compilerState</code> of the files of
+the <code class="sourceCode default">compile_state</code> of the files
+of the dependency target need to be kept in the memory.
+<code class="sourceCode default">compiler_state</code> of the files of
 the dependent target only come in the picture once the dependent target
 files are compiled. ifcfile of a
 <code class="sourceCode default">target</code> are kept in the memory
@@ -621,89 +621,85 @@ section numbering; those things will all be changed anyway if the
 proposal gets accepted into the working draft for the next C++
 standard.</p>
 <p>Compilation pause and resume capability needs to be built into the
-compiler. Build system then can load the shared library and call the
-specified functions.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> String</span>
+compiler.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> buildsystem</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> <span class="dt">char</span> <span class="op">*</span>ptr;</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> size;</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Those char pointers that are pointing to the path are platform dependent i.e. whcar_t* in-case of Windows</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> CompileOutput</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (!completed &amp;&amp; !errorOccurred), then pointer to the compiler state to be preserved by the build-system, else</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// nullptr</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="op">*</span>compilerState;</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (completed || errorOccurred), then compiler output and errorOutput, else nullptr</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    String stdout;</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    String stderr;</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (!completed &amp;&amp; !errorOccurred), then the header-unit path the compiler is waiting on if any,</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">// else if(completed &amp;&amp; !errorOccurred), then the pointer to the returned ifcFile if any, else</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// nullptr</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    String ifcFileOrHeaderUnitPath;</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (!completed &amp;&amp; !errorOccurred), then the name of the module the compiler is waiting on if any,</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">// else if(completed &amp;&amp; !errorOccurred), then the pointer to the returned objectFile if any, else</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">// nullptr</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    String objectFileOrModuleName;</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if completed == true, then the logicalName of exported module if any.</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    String logicalName;</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Following is the array size, next is the array of header-includes.</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> headerIncludesCount;</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    String <span class="op">*</span>headerIncludes;</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="co">// true if compilation succeeded, false otherwise</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> completed;</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="co">// true if an error occurred</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> errorOccurred;</span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>CompileOutput newCompile<span class="op">(</span>String compileCommand,</span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>                         String <span class="op">(*</span>getFileContents<span class="op">)(</span>String filePath<span class="op">))</span>;</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>CompileOutput resumeCompile<span class="op">(</span><span class="dt">void</span> <span class="op">*</span>compilerState, String ifcFile<span class="op">)</span>;</span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>String getObjectFile<span class="op">(</span>String ifcFile<span class="op">)</span>;</span></code></pre></div>
-<p>The compiler calls <code class="sourceCode default">newCompile</code>
-function passing it the compile-command for the module file. The compile
-command, however, does not include any dependencies. If the compiler
-sees an import of a module, it sets the
-<code class="sourceCode default">objectFileOrModuleName</code> String of
-the <code class="sourceCode default">CompileOutput</code> return value.
-Same is the case for header-units but as mentioned in declaration,
-ifcFileOrHeaderUnitPath is used. The build-system now will preserve the
-<code class="sourceCode default">compilerState</code> and will check if
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> string</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> <span class="dt">char</span> <span class="op">*</span>ptr;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> size;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Those char pointers that are pointing to the path are platform dependent i.e. whcar_t* in-case of Windows</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> compile_output</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (!completed), then pointer to the compiler state to be preserved by the build-system, else nullptr</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="op">*</span>compiler_state;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (completed), then compiler output and errorOutput, else nullptr</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    string stdout;</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    string stderr;</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (!completed), then the header-unit path the compiler is waiting on if any,</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">// else if (completed &amp;&amp; !error_occurred), then the pointer to the returned bmi_file if any, else</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">// nullptr</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    string header_unit_path_or_bmi_file;</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (!completed), then the name of the module the compiler is waiting on if any,</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// else if (completed &amp;&amp; !error_occurred), then the pointer to the returned objectFile if any, else</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">// nullptr</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    string module_name_or_object_file;</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (completed &amp;&amp; !error_occurred), then the logical_name of exported module if any.</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    string logical_name;</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Following is the array size, next is the array of header-includes.</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> header_includes_count;</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    string <span class="op">*</span>header_includes;</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="co">// true if compilation completes, false otherwise</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> completed;</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (completed), then true if an error occurred, false otherwise.</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> error_occurred;</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>compile_output new_compile<span class="op">(</span>string compile_command, string <span class="op">(*</span>get_file_contents<span class="op">)(</span>string file_path<span class="op">))</span>;</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>compile_output resume_compile<span class="op">(</span><span class="dt">void</span> <span class="op">*</span>compiler_state, string bmi_file<span class="op">)</span>;</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>string get_object_file<span class="op">(</span>string bmi_file<span class="op">)</span>;</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace buildsystem</span></span></code></pre></div>
+<p>The compiler calls
+<code class="sourceCode default">new_compile</code> function passing it
+the compile_command for the module file. The compile command, however,
+does not include any dependencies. If the compiler sees an import of a
+module, it sets the
+<code class="sourceCode default">module_name_or_object_file</code>
+string of the <code class="sourceCode default">compile_output</code>
+return value. If the compiler sees an import of a header unit, it sets
+the <code class="sourceCode default">header_unit_path_or_bmi_file</code>
+string of the <code class="sourceCode default">compile_output</code>
+return value. The build system now will preserve the
+<code class="sourceCode default">compiler_state</code> and will check if
 the required file is already built, or it needs to be built, or it is
-being built. Only after the file is available, the build-system will
-call <code class="sourceCode default">resumeCompile</code> function
-passing it the ifcFile.
-<code class="sourceCode default">resumeCompile</code> is called until
+being built. Only after the file is available, the build system will
+call <code class="sourceCode default">resume_compile</code> function
+passing it the BMI file.
+<code class="sourceCode default">resume_compile</code> is called until
 file has no dependency not provided and the compilation succeeds. If
-only the ifcFile is returned and no objectFile on compilation
-completion, the build-system assumes that the compiler is using 2-phase
-model. In this case, on a different thread it will call
-<code class="sourceCode default">getObjectFile</code> to get objectFile.
-Distinction between the two models is discussed here: <a href="https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192">https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192</a>.
-The argument <code class="sourceCode default">getFileContents</code> is
+only the BMI file is returned and no object file on compilation
+completion, the build system assumes that the compiler is using
+<code class="sourceCode default">two phase</code> model. In this case,
+it will later call
+<code class="sourceCode default">get_object_file</code> to get the
+object file. Distinction between the two models is discussed here:
+https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192. The
+argument <code class="sourceCode default">get_file_contents</code> is
 used by the compiler to get file contents of any file instead of reading
 itself. This means that a file does not get read twice for different
 compilations. As compilation completes, build-system will write ifc and
-object files to the memory as-well.</p>
-<p>This solution does not have the drawbacks of the above solution with
-the added advantages that:</p>
-<ol type="1">
-<li>Files are directly compiled instead of being scanned first before
-compilation.</li>
-<li>Build-system keeps the files in the cache. As build-systems spend a
-lot of time reading from disk, an often used technique to improve speed
-is to launch more threads than supported by hardware. But this might not
-be an effective solution anymore as building modules is not
-embarrassingly parallel.</li>
-</ol>
+object files to the disk as-well.</p>
 <h1 data-number="8" id="acknowledgements"><span class="header-section-number">8</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
 <h1 data-number="9" id="references"><span class="header-section-number">9</span> References<a href="#references" class="self-link"></a></h1>
 <p>The template above is based on the one in N3370 Call for Library

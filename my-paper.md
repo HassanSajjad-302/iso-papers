@@ -29,9 +29,9 @@ This could result in improved compilation speed.
 A very brief high level view of your proposal, understandable by C++ committee members who are not necessarily experts
 in whatever domain you are addressing.
 
-Today, almost all compilation happens by user or build system invoking the
+Today, almost all compilation happens by the user or build system invoking the
 compiler executable.
-This paper proposes for the availability of the compiler as a shared library.
+This paper proposes the availability of the compiler as a shared library.
 Both the compiler executable and the compiler shared library can co-exist.
 The build tool can then interact with the shared library with the API specified
 in this paper.
@@ -53,43 +53,43 @@ i) API allows the build system to intercept the files read by the compiler.
 So, the compilation of multiple files can use the same cached file.
 
 ii) Module files need to be scanned to determine the dependencies of the file.
-Only after that the files could be compiled in order.
+Only after that, the files could be compiled in order.
 In this approach, the scanning is not needed.
 
 ## How much faster this could be?
 
-Tests conducted imitating real world scenarios revealed that it could be ```25 - 40 %``` faster
+Tests conducted imitating real-world scenarios revealed that it could be ```25 - 40 %``` faster
 [https://github.com/HassanSajjad-302/solution5](https://github.com/HassanSajjad-302/solution5).
 
-Tests were performed with C++20 MSVC compiler on Windows 11 operating system on modern
+Tests were performed with the C++20 MSVC compiler on the Windows 11 operating system on modern
 hardware at the time of writing.
 Repositories used include SFML and LLVM.
 
 The highlights include.
 
-i) Estimated scanning time percent of the total compilation time
+i) The estimated scanning time percent of the total compilation time
 (scanning time + compilation time) per file for LLVM is ```8.46%```.
 
 ii) SFML was compiled with C++20 header units.
 Because compilation became faster, the scanning time took a larger proportion of the total time.
 Scanning took ```25.72%``` of the total compilation time.
-For few files scanning was actually slower than compilation.
+For a few files scanning was slower than compilation.
 
-iii) Estimated average scanning time per file for the project LLVM was ```217.9ms```.
-For some files it was more than ```400ms```.
+iii) The estimated average scanning time per file for the project LLVM was ```217.9ms```.
+For some files, it was more than ```400ms```.
 
 iv) On average the LLVM source file includes ```400``` header files.
 ```3598``` unique header files are read from the disk while compiling ```2854```
 source files.
 If LLVM is built with C++20 modules or C++20 header units,
 there will be ```2854 + 3598``` process launches instead of ```2854```.
-As more processes are needed for the compilation of module interface files or header units.
+More processes are needed for the compilation of module interface files or header units.
 Few compilers use ```two phase``` model instead of ```one phase```.
 Described
 here [https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192](https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192).
 In such a case, there will be ```2854 + (2 * 3598)``` process launches
 instead of ```2854```.
-By avoiding these costs of process setup and file reads should result in ```1 - 2 %```
+Avoiding these costs of process setup and file reads should result in a ```1 - 2 %```
 compilation speed-up in a clean build in the project size of LLVM.
 
 # Impact On the Standard
@@ -116,18 +116,18 @@ That is because more ```compiler_state``` and the cached files need to be kept i
 
 However, this can be alleviated by the following:
 
-In some build systems today, related files are grouped together as ```target```.
+In some build systems today, related files are grouped as one ```target```.
 A ```target``` can depend on one or more other ```target```.
 Such build systems can alleviate the higher memory consumption by ordering the
 compilation of files of the dependency before the dependent target.
 This way only the ```compile_state``` of the files of the dependency target need to be kept
 in the memory.
-```compiler_state``` of the files of the dependent target only come in the picture once
+```compiler_state``` of the files of the dependent target only comes into the picture once
 the dependent target files are compiled.
-ifcfile of a ```target``` are kept in the memory until there is no file of any dependent
+BMI files of a ```target``` are kept in the memory until there is no file of any dependent
 target left to be compiled. At which point, this is cleared from the memory.
 
-In case the similar file is being read by multiple compilations,
+In case a similar file is being read by multiple compilations,
 the memory consumption could be a little less than the current approach
 as all such compilations can use one cached read instead of reading themselves.
 
@@ -214,18 +214,18 @@ of the ```compile_output``` return value.
 The build system now will preserve the ```compiler_state``` and
 will check if the required file is already built, or it needs to be built, or it is being built.
 Only after the file is available,
-the build system will call ```resume_compile``` function passing it the BMI file.
-```resume_compile``` is called until file has no dependency not provided and the compilation
-succeeds.
+the build system will call ```resume_compile``` function passing it BMI file.
+```resume_compile``` is called until the file has no dependency not provided and the compilation
+completes.
 If only the BMI file is returned and no object file on compilation completion,
 the build system assumes that the compiler is using ```two phase``` model.
 In this case, it will later call ```get_object_file``` to get the object file.
-Distinction between the two models is discussed here:
+The distinction between the two models is discussed here:
 https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192.
-The argument ```get_file_contents``` is used by the compiler to get file contents of any file
+The argument ```get_file_contents``` is used by the compiler to get the contents of any file
 instead of reading itself.
 This means that a file does not get read twice for different compilations.
-As compilation completes, build-system will write ifc and object files to the disk as-well.
+As compilation completes, the build system will write BMI and object files to the disk as well.
 
 # Acknowledgements
 
