@@ -26,9 +26,6 @@ This could result in improved compilation speed.
 
 # Introduction
 
-A very brief high level view of your proposal, understandable by C++ committee members who are not necessarily experts
-in whatever domain you are addressing.
-
 Today, almost all compilation happens by the user or build system invoking the
 compiler executable.
 This paper proposes the availability of the compiler as a shared library.
@@ -36,14 +33,9 @@ Both the compiler executable and the compiler shared library can co-exist.
 The build tool can then interact with the shared library with the API specified
 in this paper.
 Compared to the current approach, this will result in faster compilation speed,
-close to 25 - 40 % in some cases.
+close to ```25 - 40 %``` in some cases.
 
 # Motivation and Scope
-
-Why is this important? What kinds of problems does it address? What is the intended user community? What level of
-programmers (novice, experienced, expert) is it intended to support? What existing practice is it based on? How
-widespread is its use? How long has it been in use? Is there a reference implementation and test suite available for
-inspection?
 
 Most operating systems today support dynamic loading of the shared library.
 
@@ -94,20 +86,12 @@ compilation speed-up in a clean build in the project size of LLVM.
 
 # Impact On the Standard
 
-What other library components does does it depend on, and what depends on it? Is it a pure extension, or does it require
-changes to standard components? Can it be implemented using current C++ compilers and libraries, or does it require
-language or library features that are not part of C++ today?
-
 This proposal does not impact the current build systems in any way.
 Few build systems, however, might need non-trivial changes to support this.
 Plans for supporting this in the build system HMake are explained here:
 [https://lists.isocpp.org/sg15/att-2033/Analysis.pdf](https://lists.isocpp.org/sg15/att-2033/Analysis.pdf)
 
 # Design Decisions
-
-Why did you choose the specific design that you did? What alternatives did you consider, and what are the tradeoffs?
-What are the consequences of your choice, for users and implementers? What decisions are left up to implementers? If
-there are any similar libraries in use, how do their design decisions compare to yours?
 
 ## What are the tradeoffs?
 
@@ -133,24 +117,6 @@ as all such compilations can use one cached read instead of reading themselves.
 
 # Technical Specifications
 
-The committee needs technical specifications to be able to fully evaluate your proposal. Eventually these technical
-specifications will have to be in the form of full text for the standard or technical report, often known as
-“Standardese”, but for an initial proposal there are several possibilities:
-
-Provide some limited technical documentation. This might be OK for a very simple proposal such as a single function, but
-for anything beyond that the committee will likely ask for more detail.
-Provide technical documentation that is complete enough to fully evaluate your proposal. This documentation can be in
-the proposal itself or you can provide a link to documentation available on the web. If the committee likes your
-proposal, they will ask for a revised proposal with formal standardese wording. The committee recognizes that writing
-the formal ISO specification for a library component can be daunting and will make additional information and help
-available to get you started.
-Provide full “Standardese.” A standard is a contract between implementers and users, to make it possible for users to
-write portable code with specified semantics. It says what implementers are permitted to do, what they are required to
-do, and what users can and can’t count on. The “standardese” should match the general style of exposition of the
-standard, and the specific rules set out in the Specification Style Guidelines, but it does not have to match the exact
-margins or fonts or section numbering; those things will all be changed anyway if the proposal gets accepted into the
-working draft for the next C++ standard.
-
 Compilation pause and resume capability needs to be built into the compiler.
 
 ```cpp
@@ -166,14 +132,14 @@ struct string
 // Those char pointers that are pointing to the path are platform dependent i.e. whcar_t* in-case of Windows
 struct compile_output
 {
-    // if (!completed), then pointer to the compiler state to be preserved by the build-system, else nullptr
+    // if (!completed), then pointer to the compiler state to be preserved by the build system, else nullptr
     void *compiler_state;
 
     // if (completed), then compiler output and errorOutput, else nullptr
     string stdout;
     string stderr;
 
-    // if (!completed), then the header-unit path the compiler is waiting on if any,
+    // if (!completed), then the header unit path the compiler is waiting on if any,
     // else if (completed && !error_occurred), then the pointer to the returned bmi_file if any, else
     // nullptr
     string header_unit_path_or_bmi_file;
@@ -186,7 +152,7 @@ struct compile_output
     // if (completed && !error_occurred), then the logical_name of exported module if any.
     string logical_name;
 
-    // Following is the array size, next is the array of header-includes.
+    // Following is the array size, next is the array of header includes.
     unsigned long header_includes_count;
     string *header_includes;
 
