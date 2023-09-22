@@ -30,7 +30,7 @@ Today, almost all compilation happens by the user or build system invoking the
 compiler executable.
 This paper proposes the availability of the compiler as a shared library.
 Both the compiler executable and the compiler shared library can co-exist.
-The build tool can then interact with the shared library with the API specified
+The build system can then interact with the shared library with the API specified
 in this paper.
 Compared to the current approach, this will result in faster compilation speed,
 close to ```25 - 40 %``` in some cases.
@@ -77,8 +77,8 @@ If LLVM is built with C++20 modules or C++20 header units,
 there will be ```2854 + 3598``` process launches instead of ```2854```.
 More processes are needed for the compilation of module interface files or header units.
 Few compilers use ```two phase``` model instead of ```one phase```.
-Described
-here [https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192](https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192).
+The distinction between the two models is discussed here:
+[https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192](https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192).
 In such a case, there will be ```2854 + (2 * 3598)``` process launches
 instead of ```2854```.
 Avoiding these costs of process setup and file reads should result in a ```1 - 2 %```
@@ -156,7 +156,7 @@ struct compile_output
     unsigned long header_includes_count;
     string *header_includes;
 
-    // true if compilation completes, false otherwise
+    // true if compilation completes or an error occurs, false otherwise
     bool completed;
 
     // if (completed), then true if an error occurred, false otherwise.
@@ -186,85 +186,7 @@ completes.
 If only the BMI file is returned and no object file on compilation completion,
 the build system assumes that the compiler is using ```two phase``` model.
 In this case, it will later call ```get_object_file``` to get the object file.
-The distinction between the two models is discussed here:
-https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192.
 The argument ```get_file_contents``` is used by the compiler to get the contents of any file
 instead of reading itself.
 This means that a file does not get read twice for different compilations.
 As compilation completes, the build system will write BMI and object files to the disk as well.
-
-# Acknowledgements
-
-# References
-
-The template above is based on the one in N3370 Call for Library Proposals, which also has some other tips for writing a
-good library proposal. Please note that the “Submission procedures” section in that document are outdated and should not
-be used. The start of this page describes the new procedures.
-
-\pagebreak
-
----
-references:
-
-- id: OpenPM
-  citation-label: OpenPM
-  title: "Open Pattern Matching for C++"
-  author:
-    - family: Solodkyy
-      given: Yuriy
-    - family: Reis
-      given: [Gabriel, Dos]
-    - family: Stroustrup
-      given: Bjarne
-      URL: http://www.stroustrup.com/OpenPatternMatching.pdf
-- id: Mach7
-  citation-label: Mach7
-  title: "Mach7: Pattern Matching for C++"
-  author:
-    - family: Solodkyy
-      given: Yuriy
-    - family: Reis
-      given: [Gabriel, Dos]
-    - family: Stroustrup
-      given: Bjarne
-      URL: https://github.com/solodon4/Mach7
-- id: PatMatPres
-  citation-label: PatMatPres
-  title: "\"Pattern Matching for C++\" presentation at Urbana-Champaign 2014"
-  author:
-    - family: Solodkyy
-      given: Yuriy
-    - family: Reis
-      given: [Gabriel, Dos]
-    - family: Stroustrup
-      given: Bjarne
-- id: SimpleMatch
-  citation-label: SimpleMatch
-  title: "Simple, Extensible C++ Pattern Matching Library"
-  author:
-    - family: Bandela
-      given: John
-      URL: https://github.com/jbandela/simple_match
-- id: Patterns
-  citation-label: Patterns
-  title: "Pattern Matching in C++"
-  author:
-    - family: Park
-      given: Michael
-      URL: https://github.com/mpark/patterns
-- id: Warnings
-  citation-label: Warnings
-  title: "Warnings for pattern matching"
-  author:
-    - family: Maranget
-      given: Luc
-      URL: http://moscova.inria.fr/~maranget/papers/warn/index.html
-- id : YAMLParser
-  citation-label : YAMLParser
-  URL: http://llvm.org/doxygen/YAMLParser_8h_source.html
-- id : SwiftPatterns
-  citation-label : Swift Patterns
-  title : "Swift Reference Manual - Patterns"
-  URL: https://docs.swift.org/swift-book/ReferenceManual/Patterns.html
-
----
