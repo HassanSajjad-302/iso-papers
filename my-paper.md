@@ -95,7 +95,7 @@ Plans for supporting this in the build system HMake are explained here:
 
 ## What are the tradeoffs?
 
-Memory consumption of such an approach could be higher than the current approach.
+1) Memory consumption of such an approach could be higher than the current approach.
 That is because more ```compiler_state``` and the cached files need to be kept in the memory.
 
 However, this can be alleviated by the following:
@@ -115,9 +115,21 @@ In case a similar file is being read by multiple compilations,
 the memory consumption could be a little less than the current approach
 as all such compilations can use one cached read instead of reading themselves.
 
+2) The build system can not handle the compiler crash.
+This may lead to build process termination.
+But build system can support both models, so the user has the option to fall back.
+
+3) In some cases, modifications to the configuration controlling the resource limitations for the processes might be needed as well.
+
+4) While the administrator cannot diagnose a hung or long-running process from the process listing, 
+the build system can detect it by registering thread IDs and timestamps before the "newCompile" and
+"resumeCompile" calls, and it can alert the user if the thread ID is not cleared soon.
+
+
 # Technical Specifications
 
 Compilation pause and resume capability needs to be built into the compiler.
+The compiler shared library must be able to do multiple compilations in one process concurrently.
 
 ```cpp
 namespace buildsystem

@@ -551,10 +551,12 @@ this. Plans for supporting this in the build system HMake are explained
 here: <a href="https://lists.isocpp.org/sg15/att-2033/Analysis.pdf">https://lists.isocpp.org/sg15/att-2033/Analysis.pdf</a></p>
 <h1 data-number="6" id="design-decisions"><span class="header-section-number">6</span> Design Decisions<a href="#design-decisions" class="self-link"></a></h1>
 <h2 data-number="6.1" id="what-are-the-tradeoffs"><span class="header-section-number">6.1</span> What are the tradeoffs?<a href="#what-are-the-tradeoffs" class="self-link"></a></h2>
-<p>Memory consumption of such an approach could be higher than the
+<ol type="1">
+<li>Memory consumption of such an approach could be higher than the
 current approach. That is because more
 <code class="sourceCode default">compiler_state</code> and the cached
-files need to be kept in the memory.</p>
+files need to be kept in the memory.</li>
+</ol>
 <p>However, this can be alleviated by the following:</p>
 <p>In some build systems today, related files are grouped as one
 <code class="sourceCode default">target</code>. A
@@ -574,9 +576,22 @@ which point, this is cleared from the memory.</p>
 memory consumption could be a little less than the current approach as
 all such compilations can use one cached read instead of reading
 themselves.</p>
+<ol start="2" type="1">
+<li><p>The build system can not handle the compiler crash. This may lead
+to build process termination. But build system can support both models,
+so the user has the option to fall back.</p></li>
+<li><p>In some cases, modifications to the configuration controlling the
+resource limitations for the processes might be needed as well.</p></li>
+<li><p>While the administrator cannot diagnose a hung or long-running
+process from the process listing, the build system can detect it by
+registering thread IDs and timestamps before the “newCompile” and
+“resumeCompile” calls, and it can alert the user if the thread ID is not
+cleared soon.</p></li>
+</ol>
 <h1 data-number="7" id="technical-specifications"><span class="header-section-number">7</span> Technical Specifications<a href="#technical-specifications" class="self-link"></a></h1>
 <p>Compilation pause and resume capability needs to be built into the
-compiler.</p>
+compiler. The compiler shared library must be able to do multiple
+compilations in one process concurrently.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> buildsystem</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
