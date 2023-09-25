@@ -581,7 +581,8 @@ themselves.</p>
 to build process termination. But build system can support both models,
 so the user has the option to fall back.</p></li>
 <li><p>In some cases, modifications to the configuration controlling the
-resource limitations for the processes might be needed as well.</p></li>
+resource limitations of the build process might be needed as
+well.</p></li>
 <li><p>While the administrator cannot diagnose a hung or long-running
 process from the process listing, the build system can detect it by
 registering thread IDs and timestamps before the “newCompile” and
@@ -611,24 +612,24 @@ compilations in one process concurrently.</p>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    string stdout;</span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    string stderr;</span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (!completed), then the header unit path the compiler is waiting on if any,</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">// else if (completed &amp;&amp; !error_occurred), then the pointer to the returned bmi_file if any, else</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">// nullptr</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    string header_unit_path_or_bmi_file;</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (!completed), then the name of the module the compiler is waiting on if any,</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// else if (completed &amp;&amp; !error_occurred), then the pointer to the returned objectFile if any, else</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">// nullptr</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    string module_name_or_object_file;</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (completed &amp;&amp; !error_occurred), then the logical_name of exported module if any.</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    string logical_name;</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Following is the array size, next is the array of header includes.</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> header_includes_count;</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    string <span class="op">*</span>header_includes;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (!completed), then one of module name or header unit path of the module or header unit the compiler is waiting</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">// on, else if(completed), then the logical_name of exported module if any.</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    string wait_string_or_logical_name;</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Following is the array size, next is the array of header includes.</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> header_includes_count;</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    string <span class="op">*</span>header_includes;</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Following is the array of files returned, next is the array of filesystem paths of these files, next is the size</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">// of these arrays.</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    string <span class="op">*</span>output_files;</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    string <span class="op">*</span>output_files_paths;</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">short</span> output_files_count;</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="co">// true if compiler is waiting on module, false otherwise.</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> waiting_on_module;</span>
 <span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="co">// true if compilation completes or an error occurs, false otherwise</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="co">// true if compilation completes or an error occurs, false otherwise.</span></span>
 <span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> completed;</span>
 <span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if (completed), then true if an error occurred, false otherwise.</span></span>
@@ -645,21 +646,31 @@ compilations in one process concurrently.</p>
 the compile_command for the module file. The compile command, however,
 does not include any dependencies. If the compiler sees an import of a
 module, it sets the
-<code class="sourceCode default">module_name_or_object_file</code>
+<code class="sourceCode default">wait_string_or_logical_name</code>
 string of the <code class="sourceCode default">compile_output</code>
-return value to the name of the module. If the compiler sees an import
-of a header unit, it sets the
-<code class="sourceCode default">header_unit_path_or_bmi_file</code>
+return value to the name of the module. It also sets
+<code class="sourceCode default">waiting_on_module</code> to
+<code class="sourceCode default">true</code>. If the compiler sees an
+import of a header unit, it sets the
+<code class="sourceCode default">wait_string_or_logical_name</code>
 string of the <code class="sourceCode default">compile_output</code>
-return value to the path of the header unit. The build system now will
-preserve the <code class="sourceCode default">compiler_state</code> and
-will check if the required file is already built, or it needs to be
-built, or it is being built. Only after the file is available, the build
-system will call <code class="sourceCode default">resume_compile</code>
-function passing it the BMI file.
+return value to the path of the header unit. It also sets
+<code class="sourceCode default">waiting_on_module</code> to
+<code class="sourceCode default">false</code>.</p>
+<p>The build system now will preserve the
+<code class="sourceCode default">compiler_state</code> and will check if
+the required file is already built, or it needs to be built, or it is
+being built. Only after the file is available, the build system will
+call <code class="sourceCode default">resume_compile</code> function
+passing it the BMI file.
 <code class="sourceCode default">resume_compile</code> is called until
 the file has no dependency not provided and the compilation completes.
-If only the BMI file is returned and no object file on compilation
+The compiler returns the files in array
+<code class="sourceCode default">output_files</code> and their
+corresponding output paths in the array
+<code class="sourceCode default">output_files_paths</code>. From that
+path build system can establish the type of file.</p>
+<p>If only the BMI file is returned and no object file on compilation
 completion, the build system assumes that the compiler is using
 <code class="sourceCode default">two phase</code> model. In this case,
 it will later call

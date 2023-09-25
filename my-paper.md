@@ -119,12 +119,12 @@ as all such compilations can use one cached read instead of reading themselves.
 This may lead to build process termination.
 But build system can support both models, so the user has the option to fall back.
 
-3) In some cases, modifications to the configuration controlling the resource limitations for the processes might be needed as well.
+3) In some cases, modifications to the configuration controlling the resource limitations of the build process might be
+needed as well.
 
 4) While the administrator cannot diagnose a hung or long-running process from the process listing, 
 the build system can detect it by registering thread IDs and timestamps before the "newCompile" and
 "resumeCompile" calls, and it can alert the user if the thread ID is not cleared soon.
-
 
 # Technical Specifications
 
@@ -151,24 +151,24 @@ struct compile_output
     string stdout;
     string stderr;
 
-    // if (!completed), then the header unit path the compiler is waiting on if any,
-    // else if (completed && !error_occurred), then the pointer to the returned bmi_file if any, else
-    // nullptr
-    string header_unit_path_or_bmi_file;
-
-    // if (!completed), then the name of the module the compiler is waiting on if any,
-    // else if (completed && !error_occurred), then the pointer to the returned objectFile if any, else
-    // nullptr
-    string module_name_or_object_file;
-
-    // if (completed && !error_occurred), then the logical_name of exported module if any.
-    string logical_name;
-
+    // if (!completed), then one of module name or header unit path of the module or header unit the compiler is waiting
+    // on, else if(completed), then the logical_name of exported module if any.
+    string wait_string_or_logical_name;
+    
     // Following is the array size, next is the array of header includes.
     unsigned long header_includes_count;
     string *header_includes;
+    
+    // Following is the array of files returned, next is the array of filesystem paths of these files, next is the size
+    // of these arrays.
+    string *output_files;
+    string *output_files_paths;
+    unsigned short output_files_count;
+    
+    // true if compiler is waiting on module, false otherwise.
+    bool waiting_on_module;
 
-    // true if compilation completes or an error occurs, false otherwise
+    // true if compilation completes or an error occurs, false otherwise.
     bool completed;
 
     // if (completed), then true if an error occurred, false otherwise.
@@ -185,16 +185,22 @@ string get_object_file(string bmi_file);
 The compiler calls ```new_compile``` function passing it the
 compile_command for the module file.
 The compile command, however, does not include any dependencies.
-If the compiler sees an import of a module, it sets the ```module_name_or_object_file``` string
-of the ```compile_output``` return value to the name of the module.
-If the compiler sees an import of a header unit, it sets the ```header_unit_path_or_bmi_file``` string
-of the ```compile_output``` return value to the path of the header unit.
+If the compiler sees an import of a module, it sets the ```wait_string_or_logical_name``` 
+string of the ```compile_output``` return value to the name of the module.
+It also sets ```waiting_on_module``` to ```true```.
+If the compiler sees an import of a header unit, it sets the ```wait_string_or_logical_name```
+string of the ```compile_output``` return value to the path of the header unit.
+It also sets ```waiting_on_module``` to ```false```.
+
 The build system now will preserve the ```compiler_state``` and
 will check if the required file is already built, or it needs to be built, or it is being built.
 Only after the file is available,
 the build system will call ```resume_compile``` function passing it the BMI file.
-```resume_compile``` is called until the file has no dependency not provided and the compilation
-completes.
+```resume_compile``` is called until the file has no dependency not provided and the compilation completes.
+The compiler returns the files in array ```output_files``` and
+their corresponding output paths in the array ```output_files_paths```.
+From that path build system can establish the type of file.
+
 If only the BMI file is returned and no object file on compilation completion,
 the build system assumes that the compiler is using ```two phase``` model.
 In this case, it will later call ```get_object_file``` to get the object file.
