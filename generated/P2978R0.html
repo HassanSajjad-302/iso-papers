@@ -424,7 +424,7 @@ C++</h1>
 <table style="border:none;float:right">
   <tr>
     <td>Document #:</td>
-    <td>_______</td>
+    <td>P2978R0</td>
   </tr>
   <tr>
     <td>Date:</td>
@@ -670,10 +670,9 @@ The compiler returns the files in array
 corresponding output paths in the array
 <code class="sourceCode default">output_files_paths</code>. From that
 path build system can establish the type of file.</p>
-<p>If only the BMI file is returned and no object file on compilation
-completion, the build system assumes that the compiler is using
-<code class="sourceCode default">two phase</code> model. In this case,
-it will later call
+<p>If the compiler uses
+<code class="sourceCode default">two phase</code> model, only the BMI
+file is returned, and the build system can later call
 <code class="sourceCode default">get_object_file</code> to get the
 object file. The argument
 <code class="sourceCode default">get_file_contents</code> is used by the
