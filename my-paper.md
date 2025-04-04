@@ -180,7 +180,7 @@ struct BTCLastMessage
 ```
 
 The following link has some code samples regarding this proposal.
-https://github.com/HassanSajjad-302/ipc2978api
+[https://github.com/HassanSajjad-302/ipc2978api](https://github.com/HassanSajjad-302/ipc2978api)
 
 
 The compiler and the build-system communicate through named pipes.
