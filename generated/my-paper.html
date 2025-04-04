@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
@@ -424,7 +424,9 @@ C++</h1>
 <table style="border:none;float:right">
   <tr>
     <td>Document #:</td>
-    <td>_______</td>
+    <td>
+      _______
+    </td>
   </tr>
   <tr>
     <td>Date:</td>
@@ -490,8 +492,8 @@ of the compiler as a shared library. Both the compiler executable and
 the compiler shared library can co-exist. The build system can then
 interact with the shared library with the API specified in this paper.
 Compared to the current approach, this will result in faster compilation
-speed, close to <code class="sourceCode default">25 - 40 %</code> in
-some cases.</p>
+speed, close to <code class="sourceCode cpp"><span class="dv">25</span> <span class="op">-</span> <span class="dv">40</span> <span class="op">%</span></code>
+in some cases.</p>
 <h1 data-number="4" id="motivation-and-scope"><span class="header-section-number">4</span> Motivation and Scope<a href="#motivation-and-scope" class="self-link"></a></h1>
 <p>Most operating systems today support dynamic loading of the shared
 library.</p>
@@ -507,42 +509,44 @@ approach, the scanning is not needed.</p></li>
 <h2 data-number="4.2" id="how-much-faster-this-could-be"><span class="header-section-number">4.2</span> How much faster this could
 be?<a href="#how-much-faster-this-could-be" class="self-link"></a></h2>
 <p>Tests conducted imitating real-world scenarios revealed that it could
-be <code class="sourceCode default">25 - 40 %</code> faster <a href="https://github.com/HassanSajjad-302/solution5">https://github.com/HassanSajjad-302/solution5</a>.</p>
+be <code class="sourceCode cpp"><span class="dv">25</span> <span class="op">-</span> <span class="dv">40</span> <span class="op">%</span></code>
+faster <a href="https://github.com/HassanSajjad-302/solution5">https://github.com/HassanSajjad-302/solution5</a>.</p>
 <p>Tests were performed with the C++20 MSVC compiler on the Windows 11
 operating system on modern hardware at the time of writing. Repositories
 used include SFML and LLVM.</p>
 <p>The highlights include.</p>
 <ol type="i">
 <li><p>The estimated scanning time percent of the total compilation time
-(scanning time + compilation time) per file for LLVM is
-<code class="sourceCode default">8.46%</code>.</p></li>
+(scanning time + compilation time) per file for LLVM is <code class="sourceCode cpp"><span class="fl">8.46</span><span class="op">%</span></code>.</p></li>
 <li><p>SFML was compiled with C++20 header units. Because compilation
 became faster, the scanning time took a larger proportion of the total
-time. Scanning took <code class="sourceCode default">25.72%</code> of
-the total compilation time. For a few files scanning was slower than
+time. Scanning took <code class="sourceCode cpp"><span class="fl">25.72</span><span class="op">%</span></code>
+of the total compilation time. For a few files scanning was slower than
 compilation.</p></li>
 <li><p>The estimated average scanning time per file for the project LLVM
-was <code class="sourceCode default">217.9ms</code>. For some files, it
-was more than <code class="sourceCode default">400ms</code>.</p></li>
+was <code class="sourceCode cpp"><span class="fl">217.9</span><span class="bu">ms</span></code>.
+For some files, it was more than <code class="sourceCode cpp"><span class="dv">400</span><span class="bu">ms</span></code>.</p></li>
 <li><p>On average the LLVM source file includes
-<code class="sourceCode default">400</code> header files.
-<code class="sourceCode default">3598</code> unique header files are
-read from the disk while compiling
-<code class="sourceCode default">2854</code> source files. If LLVM is
-built with C++20 modules or C++20 header units, there will be
-<code class="sourceCode default">2854 + 3598</code> process launches
-instead of <code class="sourceCode default">2854</code>. More processes
-are needed for the compilation of module interface files or header
-units. Few compilers use
-<code class="sourceCode default">two phase</code> model instead of
-<code class="sourceCode default">one phase</code>. The distinction
-between the two models is discussed here: <a href="https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192">https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192</a>.
-In such a case, there will be
-<code class="sourceCode default">2854 + (2 * 3598)</code> process
-launches instead of <code class="sourceCode default">2854</code>.
+<code class="sourceCode cpp"><span class="dv">400</span></code> header
+files. <code class="sourceCode cpp"><span class="dv">3598</span></code>
+unique header files are read from the disk while compiling
+<code class="sourceCode cpp"><span class="dv">2854</span></code> source
+files. If LLVM is built with C++20 modules or C++20 header units, there
+will be <code class="sourceCode cpp"><span class="dv">2854</span> <span class="op">+</span> <span class="dv">3598</span></code>
+process launches instead of
+<code class="sourceCode cpp"><span class="dv">2854</span></code>. More
+processes are needed for the compilation of module interface files or
+header units. Few compilers use
+<code class="sourceCode cpp">two phase</code> model instead of
+<code class="sourceCode cpp">one phase</code>. The distinction between
+the two models is discussed here: <a href="https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192">https://gitlab.kitware.com/cmake/cmake/-/issues/18355#note_1329192</a>.
+In such a case, there will be <code class="sourceCode cpp"><span class="dv">2854</span> <span class="op">+</span> <span class="op">(</span><span class="dv">2</span> <span class="op">*</span> <span class="dv">3598</span><span class="op">)</span></code>
+process launches instead of
+<code class="sourceCode cpp"><span class="dv">2854</span></code>.
 Avoiding these costs of process setup and file reads should result in a
-<code class="sourceCode default">1 - 2 %</code> compilation speed-up in
-a clean build in the project size of LLVM.</p></li>
+<code class="sourceCode cpp"><span class="dv">1</span> <span class="op">-</span> <span class="dv">2</span> <span class="op">%</span></code>
+compilation speed-up in a clean build in the project size of
+LLVM.</p></li>
 </ol>
 <h1 data-number="5" id="impact-on-the-standard"><span class="header-section-number">5</span> Impact On the Standard<a href="#impact-on-the-standard" class="self-link"></a></h1>
 <p>This proposal does not impact the current build systems in any way.
@@ -554,24 +558,24 @@ here: <a href="https://lists.isocpp.org/sg15/att-2033/Analysis.pdf">https://list
 <ol type="1">
 <li>Memory consumption of such an approach could be higher than the
 current approach. That is because more
-<code class="sourceCode default">compiler_state</code> and the cached
-files need to be kept in the memory.</li>
+<code class="sourceCode cpp">compiler_state</code> and the cached files
+need to be kept in the memory.</li>
 </ol>
 <p>However, this can be alleviated by the following:</p>
 <p>In some build systems today, related files are grouped as one
-<code class="sourceCode default">target</code>. A
-<code class="sourceCode default">target</code> can depend on one or more
-other <code class="sourceCode default">target</code>. Such build systems
-can alleviate the higher memory consumption by ordering the compilation
-of files of the dependency before the dependent target. This way only
-the <code class="sourceCode default">compile_state</code> of the files
-of the dependency target need to be kept in the memory.
-<code class="sourceCode default">compiler_state</code> of the files of
-the dependent target only comes into the picture once the dependent
-target files are compiled. BMI files of a
-<code class="sourceCode default">target</code> are kept in the memory
-until there is no file of any dependent target left to be compiled. At
-which point, this is cleared from the memory.</p>
+<code class="sourceCode cpp">target</code>. A
+<code class="sourceCode cpp">target</code> can depend on one or more
+other <code class="sourceCode cpp">target</code>. Such build systems can
+alleviate the higher memory consumption by ordering the compilation of
+files of the dependency before the dependent target. This way only the
+<code class="sourceCode cpp">compile_state</code> of the files of the
+dependency target need to be kept in the memory.
+<code class="sourceCode cpp">compiler_state</code> of the files of the
+dependent target only comes into the picture once the dependent target
+files are compiled. BMI files of a
+<code class="sourceCode cpp">target</code> are kept in the memory until
+there is no file of any dependent target left to be compiled. At which
+point, this is cleared from the memory.</p>
 <p>In case a similar file is being read by multiple compilations, the
 memory consumption could be a little less than the current approach as
 all such compilations can use one cached read instead of reading
@@ -641,42 +645,39 @@ compilations in one process concurrently.</p>
 <span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>string get_object_file<span class="op">(</span>string bmi_file<span class="op">)</span>;</span>
 <span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace buildsystem</span></span></code></pre></div>
-<p>The compiler calls
-<code class="sourceCode default">new_compile</code> function passing it
-the compile_command for the module file. The compile command, however,
-does not include any dependencies. If the compiler sees an import of a
-module, it sets the
-<code class="sourceCode default">wait_string_or_logical_name</code>
-string of the <code class="sourceCode default">compile_output</code>
-return value to the name of the module. It also sets
-<code class="sourceCode default">waiting_on_module</code> to
-<code class="sourceCode default">true</code>. If the compiler sees an
-import of a header unit, it sets the
-<code class="sourceCode default">wait_string_or_logical_name</code>
-string of the <code class="sourceCode default">compile_output</code>
-return value to the path of the header unit. It also sets
-<code class="sourceCode default">waiting_on_module</code> to
-<code class="sourceCode default">false</code>.</p>
+<p>The compiler calls <code class="sourceCode cpp">new_compile</code>
+function passing it the compile_command for the module file. The compile
+command, however, does not include any dependencies. If the compiler
+sees an import of a module, it sets the
+<code class="sourceCode cpp">wait_string_or_logical_name</code> string
+of the <code class="sourceCode cpp">compile_output</code> return value
+to the name of the module. It also sets
+<code class="sourceCode cpp">waiting_on_module</code> to
+<code class="sourceCode cpp"><span class="kw">true</span></code>. If the
+compiler sees an import of a header unit, it sets the
+<code class="sourceCode cpp">wait_string_or_logical_name</code> string
+of the <code class="sourceCode cpp">compile_output</code> return value
+to the path of the header unit. It also sets
+<code class="sourceCode cpp">waiting_on_module</code> to
+<code class="sourceCode cpp"><span class="kw">false</span></code>.</p>
 <p>The build system now will preserve the
-<code class="sourceCode default">compiler_state</code> and will check if
-the required file is already built, or it needs to be built, or it is
-being built. Only after the file is available, the build system will
-call <code class="sourceCode default">resume_compile</code> function
-passing it the BMI file.
-<code class="sourceCode default">resume_compile</code> is called until
-the file has no dependency not provided and the compilation completes.
-The compiler returns the files in array
-<code class="sourceCode default">output_files</code> and their
-corresponding output paths in the array
-<code class="sourceCode default">output_files_paths</code>. From that
-path build system can establish the type of file.</p>
+<code class="sourceCode cpp">compiler_state</code> and will check if the
+required file is already built, or it needs to be built, or it is being
+built. Only after the file is available, the build system will call
+<code class="sourceCode cpp">resume_compile</code> function passing it
+the BMI file. <code class="sourceCode cpp">resume_compile</code> is
+called until the file has no dependency not provided and the compilation
+completes. The compiler returns the files in array
+<code class="sourceCode cpp">output_files</code> and their corresponding
+output paths in the array
+<code class="sourceCode cpp">output_files_paths</code>. From that path
+build system can establish the type of file.</p>
 <p>If only the BMI file is returned and no object file on compilation
 completion, the build system assumes that the compiler is using
-<code class="sourceCode default">two phase</code> model. In this case,
-it will later call
-<code class="sourceCode default">get_object_file</code> to get the
-object file. The argument
-<code class="sourceCode default">get_file_contents</code> is used by the
+<code class="sourceCode cpp">two phase</code> model. In this case, it
+will later call <code class="sourceCode cpp">get_object_file</code> to
+get the object file. The argument
+<code class="sourceCode cpp">get_file_contents</code> is used by the
 compiler to get the contents of any file instead of reading itself. This
 means that a file does not get read twice for different compilations. As
 compilation completes, the build system will write BMI and object files
