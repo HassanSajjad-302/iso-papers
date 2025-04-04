@@ -172,7 +172,7 @@ struct BTCNonModule
     string filePath;
 };
 
-// Reply for CTBLastMessage if the compilation succeeded.
+// Reply for CTBLastMessage if the compilation succeeds and a BMI is returned.
 struct BTCLastMessage
 {
 };
