@@ -45,11 +45,12 @@ Minimal changes are needed from the compiler to support this.
 
 ## Why is this faster
 
-Scanning is fast for C++20 modules, but it is slow for C++20 header-units.
-Unlike header-files, header-units processing is not impacted
-by the macros defined in the file importing header-units.
-Hence, they are not impacted by the include-guards.
-As we move deeper in the library chain, the same header-unit is scanned again and again.
+While scanning a module-file, the compiler needs to maintain separate
+macro contexts for every imported header-unit file.
+This is different from a file including header-files where there is just one
+macro context.
+Due to this, scanning is slow for C++20 header-units.
+
 
 # Impact On the Standard
 

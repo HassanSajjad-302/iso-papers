@@ -499,11 +499,10 @@ the scanning. Minimal changes are needed from the compiler to support
 this.</p>
 <h1 data-number="4" id="motivation-and-scope"><span class="header-section-number">4</span> Motivation and Scope<a href="#motivation-and-scope" class="self-link"></a></h1>
 <h2 data-number="4.1" id="why-is-this-faster"><span class="header-section-number">4.1</span> Why is this faster<a href="#why-is-this-faster" class="self-link"></a></h2>
-<p>Scanning is fast for C++20 modules, but it is slow for C++20
-header-units. Unlike header-files, header-units processing is not
-impacted by the macros defined in the file importing header-units.
-Hence, they are not impacted by the include-guards. As we move deeper in
-the library chain, the same header-unit is scanned again and again.</p>
+<p>While scanning a module-file, the compiler needs to maintain separate
+macro contexts for every imported header-unit file. This is different
+from a file including header-files where there is just one macro
+context. Due to this, scanning is slow for C++20 header-units.</p>
 <h1 data-number="5" id="impact-on-the-standard"><span class="header-section-number">5</span> Impact On the Standard<a href="#impact-on-the-standard" class="self-link"></a></h1>
 <p>This proposal does not impact the current build systems in any way.
 Few build systems, however, might need non-trivial changes to support
