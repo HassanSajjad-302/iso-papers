@@ -200,14 +200,18 @@ The following link has some code samples regarding this proposal.
 The compiler and the build-system communicate through named pipes.
 On Windows, since pipes support bidirectional communication,
 only one named pipe is needed.
-The name of the pipe is the object-file path.
-While on POSIX-compliant systems,
-a pipe with object-file path name is used for the compiler to build-system communication.
+The name of the pipe is the object-file path except for header-units
+for which it is the BMI path.
+On POSIX-compliant systems,
+same pipe is used for
+compiler to build-system communication.
 While ```1``` is appended to this name for the build-system to compiler pipe.
 
-The compiler is invoked with the compile-command to compile a module or header-unit file.
-It also contains the options for the object file and the BMI file.
-The compiler might not produce the BMI file.
+The compiler is invoked with the compile-command 
+to compile a module or header-unit file.
+It also contains the options for the object file and the BMI file,
+if any of these will be produced.
+The compiler might not produce one or the other.
 The compile-command does not contain any dependencies.
 It contains a special flag that indicates the compiler to use this approach.
 The name of such a flag could be ```noscanIPC```
@@ -224,7 +228,7 @@ The name of such a flag could be ```findInclude```.
 
 This approach also enables memory-mapped files / shared memory
 for BMI files.
-This could reduce IO in cases where the BMI is read by multiple
+This reduces IO in cases where the BMI is read by multiple
 compilations.
 Only BMI is selected because source-file and header-files will
 likely be read just once (to build header-unit or module)
@@ -232,7 +236,7 @@ and these could potentially be edited while the build is
 underway.
 Similarly, object files are also read just once in most cases.
 
-Now, when the compiler needs a file,
+Now, when the compiler needs a module,
 or needs to resolve a header-include,
 compiler sends the respective message
 and waits for the respective response.
