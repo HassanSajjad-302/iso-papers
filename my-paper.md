@@ -95,6 +95,7 @@ as all such compilations can use one cached read instead of reading themselves.
 
 
 ```cpp
+
 // CTB --> Compiler to Build-System
 // BTC --> Build-System to Compiler
 
@@ -202,6 +203,7 @@ struct BTCNonModule
 struct BTCLastMessage
 {
 };
+
 ```
 
 The following link has some code samples regarding this proposal.
