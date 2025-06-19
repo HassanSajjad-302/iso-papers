@@ -465,7 +465,7 @@ C++</h1>
 Scope<span></span></a>
 <ul>
 <li><a href="#why-is-this-faster" id="toc-why-is-this-faster"><span class="toc-section-number">4.1</span> Why is this
-faster<span></span></a></li>
+faster?<span></span></a></li>
 </ul></li>
 <li><a href="#impact-on-the-standard" id="toc-impact-on-the-standard"><span class="toc-section-number">5</span> Impact On the
 Standard<span></span></a></li>
@@ -498,7 +498,7 @@ source-files. This paper proposes a synchronous IPC mechanism to avoid
 the scanning. Minimal changes are needed from the compiler to support
 this.</p>
 <h1 data-number="4" id="motivation-and-scope"><span class="header-section-number">4</span> Motivation and Scope<a href="#motivation-and-scope" class="self-link"></a></h1>
-<h2 data-number="4.1" id="why-is-this-faster"><span class="header-section-number">4.1</span> Why is this faster<a href="#why-is-this-faster" class="self-link"></a></h2>
+<h2 data-number="4.1" id="why-is-this-faster"><span class="header-section-number">4.1</span> Why is this faster?<a href="#why-is-this-faster" class="self-link"></a></h2>
 <p>While scanning a module-file, the compiler needs to maintain separate
 macro contexts for every imported header-unit file. This is different
 from a file including header-files where there is just one macro
@@ -520,14 +520,13 @@ kept in the memory simultaneously.</li>
 <code class="sourceCode cpp">target</code> can depend on one or more
 other <code class="sourceCode cpp">target</code>. Such build systems can
 alleviate the higher memory consumption by ordering the compilation of
-files of the dependency before the dependent target. This way only the
-compilation process of the files of the dependency target need to be
-kept in the memory. The compilation process of the files of the
-dependent target only comes into the picture once the dependent target
-files are compiled. BMI files of a
-<code class="sourceCode cpp">target</code> are kept in the memory until
-there is no file of any dependent target left to be compiled. At which
-point, this is cleared from the memory.</p>
+dependency target’s files before the dependent target. This way only the
+compilation process of dependency target’s files needs to be kept in the
+memory. The compilation process of dependent target’s files is initiated
+only after the compilation process of dependency target’s files.</p>
+<p>BMI files of a <code class="sourceCode cpp">target</code> are kept in
+the memory until there is no file of any dependent target left to be
+compiled. At which point, this is cleared from the memory.</p>
 <p>In case a similar file is being read by multiple compilations, the
 memory consumption could be a little less than the current approach as
 all such compilations can use one cached read instead of reading
@@ -541,136 +540,91 @@ build-system can cache. Other compilations can benefit from this and not
 make filesystem calls themselves.</p></li>
 </ol>
 <h1 data-number="7" id="technical-specifications"><span class="header-section-number">7</span> Technical Specifications<a href="#technical-specifications" class="self-link"></a></h1>
-<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// CTB --&gt; Compiler to Build-System</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">// BTC --&gt; Build-System to Compiler</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">// string is 4 bytes that hold the size of the char array, followed by the array.</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// vector is 4 bytes that hold the size of the array, followed by the array.</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">// All fields are sent in declaration order, even if meaningless.</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Compiler to Build System</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">// This is the first byte of the compiler to build-system message.</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> <span class="kw">class</span> CTB <span class="op">:</span> <span class="dt">uint8_t</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    MODULE <span class="op">=</span> <span class="dv">0</span>,</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    NON_MODULE <span class="op">=</span> <span class="dv">1</span>,</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    LAST_MESSAGE <span class="op">=</span> <span class="dv">2</span>,</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">// This is sent when the compiler needs a module.</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> CTBModule</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    string moduleName;</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co">// This is sent when the compiler needs something else than a module.</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co">// isHeaderUnit is set when the compiler knows that it is a header-unit.</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co">// If findInclude flag is provided, then the compiler sends logicalName,</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="co">// Otherwise compiler sends the full path.</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> CTBNonModule</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> isHeaderUnit <span class="op">=</span> <span class="kw">false</span>;</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    string str;</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="co">// This is the last message sent by the compiler.</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> CTBLastMessage</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Whether the compilation succeeded or failed.</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> exitStatus <span class="op">=</span> <span class="kw">false</span>;</span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Following fields are meaningless if the compilation failed.</span></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="co">// header-includes discovered during compilation.</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    vector<span class="op">&lt;</span>string<span class="op">&gt;</span> headerFiles;</span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="co">// compiler output</span></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    string output;</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    <span class="co">// compiler error output.</span></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Any IPC related error output should be reported on stderr.</span></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    string errorOutput;</span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>    <span class="co">// exported module name if any.</span></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>    string logicalName;</span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This is communicated because the receiving process has no</span></span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>    <span class="co">// way to learn the shared memory file size on both Windows</span></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>    <span class="co">// and Linux without a filesystem call.</span></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Meaningless if the file compiled is not a module interface unit</span></span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>    <span class="co">// or a header-unit.</span></span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> fileSize <span class="op">=</span> UINT32_MAX;</span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="co">// Build System to Compiler</span></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="co">// Unlike CTB, this is not written as the first byte</span></span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="co">// since the compiler knows what message it will receive.</span></span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="kw">enum</span> <span class="kw">class</span> BTC <span class="op">:</span> <span class="dt">uint8_t</span></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>    MODULE <span class="op">=</span> <span class="dv">0</span>,</span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>    NON_MODULE <span class="op">=</span> <span class="dv">1</span>,</span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>    LAST_MESSAGE <span class="op">=</span> <span class="dv">2</span>,</span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> BMIFile</span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>    string filePath;</span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> fileSize <span class="op">=</span> UINT32_MAX;</span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="co">// Reply for CTBModule</span></span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> BTCModule</span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>    BMIFile requested;</span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>    <span class="co">// duplicates not allowed.</span></span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>    vector<span class="op">&lt;</span>BMIFile<span class="op">&gt;</span> deps;</span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="co">// Reply for CTBNonModule</span></span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> BTCNonModule</span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> isHeaderUnit <span class="op">=</span> <span class="kw">false</span>;</span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>    string filePath;</span>
-<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if isHeaderUnit == true, fileSize of the requested file.</span></span>
-<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>    <span class="co">// if isHeaderUnit == false, following two are meaning-less.</span></span>
-<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> fileSize;</span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>    vector<span class="op">&lt;</span>BMIFile<span class="op">&gt;</span> deps;</span>
-<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a><span class="co">// Reply for CTBLastMessage if the compilation succeeded.</span></span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> BTCLastMessage</span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<p>```cpp // CTB –&gt; Compiler to Build-System // BTC –&gt;
+Build-System to Compiler</p>
+<p>// string is 4 bytes that hold the size of the char array, followed
+by the array. // vector is 4 bytes that hold the size of the array,
+followed by the array. // All fields are sent in declaration order, even
+if meaningless.</p>
+<p>// Compiler to Build System // This is the first byte of the compiler
+to build-system message. enum class CTB : uint8_t { MODULE = 0,
+NON_MODULE = 1, LAST_MESSAGE = 2, };</p>
+<p>// This is sent when the compiler needs a module. struct CTBModule {
+string moduleName; };</p>
+<p>// This is sent when the compiler needs something else than a module.
+// isHeaderUnit is set when the compiler knows that it is a header-unit.
+// If findInclude flag is provided, then the compiler sends logicalName,
+// Otherwise compiler sends the full path. struct CTBNonModule { bool
+isHeaderUnit = false; string str; };</p>
+<p>// This is the last message sent by the compiler. struct
+CTBLastMessage { // Whether the compilation succeeded or failed. bool
+exitStatus = false; // Following fields are meaningless if the
+compilation failed. // header-includes discovered during compilation.
+vector<string> headerFiles; // compiler output string output; //
+compiler error output. // Any IPC related error output should be
+reported on stderr. string errorOutput; // exported module name if any.
+string logicalName; // This is communicated because the receiving
+process has no // way to learn the shared memory file size on both
+Windows // and Linux without a filesystem call. // Meaningless if the
+file compiled is not a module interface unit // or a header-unit.
+uint32_t fileSize = UINT32_MAX; };</p>
+<p>// Build System to Compiler // Unlike CTB, this is not written as the
+first byte // since the compiler knows what message it will receive.
+enum class BTC : uint8_t { MODULE = 0, NON_MODULE = 1, LAST_MESSAGE = 2,
+};</p>
+<p>struct BMIFile { string filePath; uint32_t fileSize = UINT32_MAX;
+};</p>
+<p>struct ModuleDep { BMIFile file; string logicalName; };</p>
+<p>// Reply for CTBModule struct BTCModule { BMIFile requested;
+vector<ModuleDep> deps; };</p>
+<p>struct HuDep { BMIFile file; string logicalName; bool angled = false;
+};</p>
+<p>// Reply for CTBNonModule struct BTCNonModule { bool isHeaderUnit =
+false; string filePath; // if isHeaderUnit == false, the following three
+are meaning-less. bool angled = false; // if isHeaderUnit == true,
+fileSize of the requested file. uint32_t fileSize; vector<HuDep> deps;
+};</p>
+<p>// Reply for CTBLastMessage if the compilation succeeded. struct
+BTCLastMessage { };```</p>
 <p>The following link has some code samples regarding this proposal. <a href="https://github.com/HassanSajjad-302/ipc2978api">https://github.com/HassanSajjad-302/ipc2978api</a></p>
 <p>The compiler and the build-system communicate through named pipes. On
 Windows, since pipes support bidirectional communication, only one named
 pipe is needed. The name of the pipe is the object-file path except for
 header-units for which it is the BMI path. On POSIX-compliant systems,
-same pipe is used for compiler to build-system communication. While
+the same pipe is used for compiler to build-system communication. While
 <code class="sourceCode cpp"><span class="dv">1</span></code> is
 appended to this name for the build-system to compiler pipe.</p>
 <p>The compiler is invoked with the compile-command to compile a module
 or header-unit file. It also contains the options for the object file
-and the BMI file, if any of these will be produced. The compiler might
-not produce one or the other. The compile-command does not contain any
+and the BMI file if any of these are produced. The compiler might not
+produce one or the other. The compile-command does not contain any
 dependencies. It contains a special flag that indicates the compiler to
 use this approach. The name of such a flag could be
-<code class="sourceCode cpp">noscanIPC</code></p>
+<code class="sourceCode cpp">noscanIPC</code>.</p>
 <p>In this approach, the compiler can ask the build-system to find the
 header-include on the filesystem. Buildsystem can cache the results and
 share them with other compilations, thus reducing the number of
 filesystem calls. However, this feature is selective. As it could be
-difficult for the build-system to perfectly imitate the compiler in some
-scenarios. So, this is to be controlled by a separate flag. The name of
-such a flag could be
+challenging for the build-system to perfectly imitate the compiler in
+some scenarios. So, this is to be controlled by a separate flag. The
+name of such a flag could be
 <code class="sourceCode cpp">findInclude</code>.</p>
 <p>This approach also enables memory-mapped files / shared memory for
 BMI files. This reduces IO in cases where the BMI is read by multiple
 compilations. Only BMI is selected because source-file and header-files
-will likely be read just once (to build header-unit or module) and these
-could potentially be edited while the build is underway. Similarly,
-object files are also read just once in most cases.</p>
-<p>Now, when the compiler needs a module, or needs to resolve a
-header-include, compiler sends the respective message and waits for the
-respective response. If the file is BMI, then this is a shared memory
-object.</p>
+will likely be read just once (to build header-unit or module), and
+these could potentially be edited while the build is underway.
+Similarly, object files are also read just once in most cases.</p>
+<p>Now, when the compiler needs a module or needs to resolve a
+header-include, the compiler sends the respective message and waits for
+the respective response. If the file is BMI, then this is a shared
+memory object. Besides the requested file, the compiler also sends the
+dependencies of the file. The <code class="sourceCode cpp">deps</code>
+only contains unique elements. It does not contain an already sent
+dependency. The compiler should not re-request an already sent file,
+however, this is not an error.</p>
 <p>Compiler sends <code class="sourceCode cpp">CTBLastMessage</code>
-once it has completed the compilation or the compilation failed. if the
+once it has completed the compilation or the compilation failed. If the
 compilation succeeds and compilation produces a BMI, then compiler waits
 for the <code class="sourceCode cpp">BTCLastMessage</code>, otherwise it
 can exit. Compiler needs to wait for the
