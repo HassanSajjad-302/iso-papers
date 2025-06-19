@@ -43,7 +43,7 @@ Minimal changes are needed from the compiler to support this.
 
 # Motivation and Scope
 
-## Why is this faster
+## Why is this faster?
 
 While scanning a module-file, the compiler needs to maintain separate
 macro contexts for every imported header-unit file.
@@ -70,11 +70,12 @@ However, this can be alleviated by the following:
 In some build systems today, related files are grouped as one ```target```.
 A ```target``` can depend on one or more other ```target```.
 Such build systems can alleviate the higher memory consumption by ordering the
-compilation of files of the dependency before the dependent target.
-This way only the compilation process of the files of the dependency target
-need to be kept in the memory.
-The compilation process of the files of the dependent target only comes into the picture once
-the dependent target files are compiled.
+compilation of dependency target's files before the dependent target.
+This way only the compilation process of dependency target's files
+needs to be kept in the memory.
+The compilation process of dependent target's files 
+is initiated only after the compilation process of dependency target's files.
+
 BMI files of a ```target``` are kept in the memory until there is no file of any dependent
 target left to be compiled. At which point, this is cleared from the memory.
 
@@ -94,7 +95,6 @@ as all such compilations can use one cached read instead of reading themselves.
 
 
 ```cpp
-
 // CTB --> Compiler to Build-System
 // BTC --> Build-System to Compiler
 
@@ -166,12 +166,24 @@ struct BMIFile
     uint32_t fileSize = UINT32_MAX;
 };
 
+struct ModuleDep
+{
+    BMIFile file;
+    string logicalName;
+};
+
 // Reply for CTBModule
 struct BTCModule
 {
     BMIFile requested;
-    // duplicates not allowed.
-    vector<BMIFile> deps;
+    vector<ModuleDep> deps;
+};
+
+struct HuDep
+{
+    BMIFile file;
+    string logicalName;
+    bool angled = false;
 };
 
 // Reply for CTBNonModule
@@ -179,18 +191,17 @@ struct BTCNonModule
 {
     bool isHeaderUnit = false;
     string filePath;
+    // if isHeaderUnit == false, the following three are meaning-less.
+    bool angled = false;
     // if isHeaderUnit == true, fileSize of the requested file.
-    // if isHeaderUnit == false, following two are meaning-less.
     uint32_t fileSize;
-    vector<BMIFile> deps;
+    vector<HuDep> deps;
 };
 
 // Reply for CTBLastMessage if the compilation succeeded.
 struct BTCLastMessage
 {
-};
-
-```
+};```
 
 The following link has some code samples regarding this proposal.
 [https://github.com/HassanSajjad-302/ipc2978api](https://github.com/HassanSajjad-302/ipc2978api)
@@ -202,25 +213,25 @@ only one named pipe is needed.
 The name of the pipe is the object-file path except for header-units
 for which it is the BMI path.
 On POSIX-compliant systems,
-same pipe is used for
+ the same pipe is used for
 compiler to build-system communication.
 While ```1``` is appended to this name for the build-system to compiler pipe.
 
 The compiler is invoked with the compile-command 
 to compile a module or header-unit file.
-It also contains the options for the object file and the BMI file,
-if any of these will be produced.
+It also contains the options for the object file and the BMI file
+if any of these are produced.
 The compiler might not produce one or the other.
 The compile-command does not contain any dependencies.
 It contains a special flag that indicates the compiler to use this approach.
-The name of such a flag could be ```noscanIPC```
+The name of such a flag could be ```noscanIPC```.
 
 In this approach, the compiler can ask the build-system to find the
 header-include on the filesystem.
 Buildsystem can cache the results and share them with other compilations,
 thus reducing the number of filesystem calls.
 However, this feature is selective.
-As it could be difficult for the build-system to
+As it could be challenging for the build-system to
 perfectly imitate the compiler in some scenarios.
 So, this is to be controlled by a separate flag.
 The name of such a flag could be ```findInclude```.
@@ -230,20 +241,26 @@ for BMI files.
 This reduces IO in cases where the BMI is read by multiple
 compilations.
 Only BMI is selected because source-file and header-files will
-likely be read just once (to build header-unit or module)
+likely be read just once (to build header-unit or module), 
 and these could potentially be edited while the build is
 underway.
 Similarly, object files are also read just once in most cases.
 
-Now, when the compiler needs a module,
+Now, when the compiler needs a module 
 or needs to resolve a header-include,
-compiler sends the respective message
+ the compiler sends the respective message
 and waits for the respective response.
 If the file is BMI, then this is a shared memory object.
+Besides the requested file,
+the compiler also sends the dependencies of the file.
+The `deps` only contains unique elements.
+It does not contain an already sent dependency.
+The compiler should not re-request an already sent file,
+however, this is not an error.
 
 Compiler sends ```CTBLastMessage``` once it has completed
 the compilation or the compilation failed.
-if the compilation succeeds
+If the compilation succeeds
 and compilation produces a BMI,
 then compiler waits for the
 ```BTCLastMessage```, otherwise it can exit.
