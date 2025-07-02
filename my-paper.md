@@ -121,7 +121,7 @@ struct CTBModule
 // This is sent when the compiler needs something else than a module.
 // isHeaderUnit is set when the compiler knows that it is a header-unit.
 // If findInclude flag is provided, then the compiler sends logicalName,
-// Otherwise compiler sends the full path.
+// Otherwise the compiler sends the full path.
 struct CTBNonModule
 {
     bool isHeaderUnit = false;
@@ -203,7 +203,6 @@ struct BTCNonModule
 struct BTCLastMessage
 {
 };
-
 ```
 
 **TODO:**
@@ -285,3 +284,11 @@ before the compiler exits.
 If the build-system does not receive ```CTBLastMessage```
 before the pipe closes,
 it concludes that an ICE happened.
+In the case of ICE, the compiler should still try to send
+`CTBLastMessage`.
+The compiler should initialize the `IPCManagerCompiler`
+right after detecting `noScanIPC` flag.
+Because if the compiler crashes before the
+`ConnectNamedPipe` or `accept` call completion on the build-system,
+then that build-system thread might hang indefinitely.
+Build-system may or may not detect this.

@@ -566,7 +566,7 @@ make filesystem calls themselves.</p></li>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co">// This is sent when the compiler needs something else than a module.</span></span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co">// isHeaderUnit is set when the compiler knows that it is a header-unit.</span></span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co">// If findInclude flag is provided, then the compiler sends logicalName,</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="co">// Otherwise compiler sends the full path.</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="co">// Otherwise the compiler sends the full path.</span></span>
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> CTBNonModule</span>
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> isHeaderUnit <span class="op">=</span> <span class="kw">false</span>;</span>
@@ -648,18 +648,31 @@ make filesystem calls themselves.</p></li>
 <span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> BTCLastMessage</span>
 <span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
-<p>The following link has some code samples regarding this proposal. <a href="https://github.com/HassanSajjad-302/ipc2978api">https://github.com/HassanSajjad-302/ipc2978api</a></p>
-<p>The compiler and the build-system communicate through named pipes. On
-Windows, since pipes support bidirectional communication, only one named
-pipe is needed. The name of the pipe is the object-file path except for
-header-units for which it is the BMI path. On POSIX-compliant systems,
-the same pipe is used for compiler to build-system communication. While
-<code class="sourceCode cpp"><span class="dv">1</span></code> is
-appended to this name for the build-system to compiler pipe.</p>
+  <p><strong>TODO:</strong> The API design is complete, and is being
+    documented. The following link has reference implementation. The
+    implementation has full code coverage. <a href="https://github.com/HassanSajjad-302/ipc2978api">https://github.com/HassanSajjad-302/ipc2978api</a>.
+    Below gives a summary of the design rationale.</p>
+  <p>On Windows, named pipes is a feature rich and mature platform for
+    IPC, so it is used. While on Linux, Unix sockets are used. Since the
+    pipe is unidirectional in Linux, we will need two pipes for
+    bidirectional communication. The name of the pipe is the object-file
+    path except for header-units for which it is the BMI path. In the case
+    of socket, the <code class="sourceCode cpp">sun_addr</code> of
+    <code class="sourceCode cpp">sockaddr_un</code> is <code class="sourceCode cpp"><span class="op">/</span>tmp<span
+            class="op">/</span></code>
+    + hash of object or bmi file-path that is converted to 16 character
+    hex-string. Hash is calculated using <a href>rapidhash</a> library.
+    All of this is internal detail. API on top of this is exposed through
+    <code class="sourceCode cpp">IPCManagerBS</code> and
+    <code class="sourceCode cpp">IPCManagerCompiler</code>. See <code class="sourceCode cpp">CompilerTest<span
+            class="op">.</span>cpp</code>
+    and <code class="sourceCode cpp">BuildSystemTest<span class="op">.</span>cpp</code>
+    at the link given above for the usage details. These tests are
+    responsible for 100% code coverage.</p>
 <p>The compiler is invoked with the compile-command to compile a module
-or header-unit file. It also contains the options for the object file
-and the BMI file if any of these are produced. The compiler might not
-produce one or the other. The compile-command does not contain any
+  or header-unit file. It should contain the option for the object file
+  and the BMI file, if any of this could be produced. The compiler might
+  not produce one or the other. The compile-command does not contain any
 dependencies. It contains a special flag that indicates the compiler to
 use this approach. The name of such a flag could be
 <code class="sourceCode cpp">noscanIPC</code>.</p>
@@ -683,7 +696,7 @@ the respective response. If the file is BMI, then this is a shared
 memory object. Besides the requested file, the compiler also sends the
 dependencies of the file. The <code class="sourceCode cpp">deps</code>
 only contains unique elements. It does not contain an already sent
-dependency. The compiler should not re-request an already sent file,
+  dependency. The compiler should not re-request an already sent file;
 however, this is not an error.</p>
 <p>Compiler sends <code class="sourceCode cpp">CTBLastMessage</code>
 once it has completed the compilation or the compilation failed. If the
@@ -695,7 +708,16 @@ can open the read-only shared memory object before the compiler
 exits.</p>
 <p>If the build-system does not receive
 <code class="sourceCode cpp">CTBLastMessage</code> before the pipe
-closes, it concludes that an ICE happened.</p>
+  closes, it concludes that an ICE happened. In the case of ICE, the
+  compiler should still try to send
+  <code class="sourceCode cpp">CTBLastMessage</code>. The compiler should
+  initialize the <code class="sourceCode cpp">IPCManagerCompiler</code>
+  right after detecting <code class="sourceCode cpp">noScanIPC</code>
+  flag. Because if the compiler crashes before the
+  <code class="sourceCode cpp">ConnectNamedPipe</code> or
+  <code class="sourceCode cpp">accept</code> call completion on the
+  build-system, then that build-system thread might hang indefinitely.
+  Build-system may or may not detect this.</p>
 </div>
 </div>
 </body>
