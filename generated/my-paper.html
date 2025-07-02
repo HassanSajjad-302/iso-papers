@@ -649,9 +649,9 @@ make filesystem calls themselves.</p></li>
 <span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
   <p><strong>TODO:</strong> The API design is complete, and is being
-    documented. The following link has reference implementation. The
+    documented. The following link has sample implementation. The
     implementation has full code coverage. <a href="https://github.com/HassanSajjad-302/ipc2978api">https://github.com/HassanSajjad-302/ipc2978api</a>.
-    Below gives a summary of the design rationale.</p>
+    Below gives a summary of the design and some design rationale.</p>
   <p>On Windows, named pipes is a feature rich and mature platform for
     IPC, so it is used. While on Linux, Unix sockets are used. Since the
     pipe is unidirectional in Linux, we will need two pipes for
@@ -661,8 +661,8 @@ make filesystem calls themselves.</p></li>
     <code class="sourceCode cpp">sockaddr_un</code> is <code class="sourceCode cpp"><span class="op">/</span>tmp<span
             class="op">/</span></code>
     + hash of object or bmi file-path that is converted to 16 character
-    hex-string. Hash is calculated using <a href>rapidhash</a> library.
-    All of this is internal detail. API on top of this is exposed through
+    hex-string. Hash is calculated using <a href="https://github.com/Nicoshev/rapidhash">rapidhash</a> library. All
+    of this is internal detail. API on top of this is exposed through
     <code class="sourceCode cpp">IPCManagerBS</code> and
     <code class="sourceCode cpp">IPCManagerCompiler</code>. See <code class="sourceCode cpp">CompilerTest<span
             class="op">.</span>cpp</code>

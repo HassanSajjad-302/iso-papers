@@ -207,10 +207,10 @@ struct BTCLastMessage
 
 **TODO:**
 The API design is complete, and is being documented.
-The following link has reference implementation.
+The following link has sample implementation.
 The implementation has full code coverage.
 [https://github.com/HassanSajjad-302/ipc2978api](https://github.com/HassanSajjad-302/ipc2978api).
-Below gives a summary of the design rationale.
+Below gives a summary of the design and some design rationale.
 
 On Windows, named pipes is a feature rich and mature platform for IPC,
 so it is used.
@@ -222,7 +222,7 @@ for which it is the BMI path.
 In the case of socket, the `sun_addr` of `sockaddr_un`
 is `/tmp/` + hash of object or bmi file-path that is converted
 to 16 character hex-string.
-Hash is calculated using [rapidhash]() library.
+Hash is calculated using [rapidhash](https://github.com/Nicoshev/rapidhash) library.
 All of this is internal detail.
 API on top of this is exposed through
 `IPCManagerBS` and `IPCManagerCompiler`.
