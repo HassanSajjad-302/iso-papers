@@ -206,24 +206,35 @@ struct BTCLastMessage
 
 ```
 
-The following link has some code samples regarding this proposal.
-[https://github.com/HassanSajjad-302/ipc2978api](https://github.com/HassanSajjad-302/ipc2978api)
+**TODO:**
+The API design is complete, and is being documented.
+The following link has reference implementation.
+The implementation has full code coverage.
+[https://github.com/HassanSajjad-302/ipc2978api](https://github.com/HassanSajjad-302/ipc2978api).
+Below gives a summary of the design rationale.
 
-
-The compiler and the build-system communicate through named pipes.
-On Windows, since pipes support bidirectional communication,
-only one named pipe is needed.
+On Windows, named pipes is a feature rich and mature platform for IPC,
+so it is used.
+While on Linux, Unix sockets are used.
+Since the pipe is unidirectional in Linux,
+we will need two pipes for bidirectional communication.
 The name of the pipe is the object-file path except for header-units
 for which it is the BMI path.
-On POSIX-compliant systems,
- the same pipe is used for
-compiler to build-system communication.
-While ```1``` is appended to this name for the build-system to compiler pipe.
+In the case of socket, the `sun_addr` of `sockaddr_un`
+is `/tmp/` + hash of object or bmi file-path that is converted
+to 16 character hex-string.
+Hash is calculated using [rapidhash]() library.
+All of this is internal detail.
+API on top of this is exposed through
+`IPCManagerBS` and `IPCManagerCompiler`.
+See `CompilerTest.cpp` and `BuildSystemTest.cpp` at the link given above
+for the usage details. These tests are responsible for 100% code coverage.
+
 
 The compiler is invoked with the compile-command 
 to compile a module or header-unit file.
-It also contains the options for the object file and the BMI file
-if any of these are produced.
+It should contain the option for the object file and the BMI file,
+if any of this could be produced.
 The compiler might not produce one or the other.
 The compile-command does not contain any dependencies.
 It contains a special flag that indicates the compiler to use this approach.
@@ -258,7 +269,7 @@ Besides the requested file,
 the compiler also sends the dependencies of the file.
 The `deps` only contains unique elements.
 It does not contain an already sent dependency.
-The compiler should not re-request an already sent file,
+The compiler should not re-request an already sent file;
 however, this is not an error.
 
 Compiler sends ```CTBLastMessage``` once it has completed
