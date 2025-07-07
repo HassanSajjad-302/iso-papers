@@ -205,22 +205,24 @@ struct BTCLastMessage
 };
 ```
 
-**TODO:**
-The API design is complete, and is being documented.
-The following link has sample implementation.
-The implementation has full code coverage.
+The following link has a sample implementation.
+The implementation has 100% code coverage.
 [https://github.com/HassanSajjad-302/ipc2978api](https://github.com/HassanSajjad-302/ipc2978api).
 Below gives a summary of the design and some design rationale.
 
-On Windows, named pipes is a feature rich and mature platform for IPC,
+**TODO:**
+API `IPCManagerBS` and `IPCManagerCompiler` should be documented
+here as well.
+
+On Windows, named pipes are a feature-rich and mature platform for IPC,
 so it is used.
-While on Linux, Unix sockets are used.
-Since the pipe is unidirectional in Linux,
-we will need two pipes for bidirectional communication.
+However, on Linux, Unix sockets are used.
+As the pipe is unidirectional in Linux,
+two pipes will be needed for bidirectional communication.
 The name of the pipe is the object-file path except for header-units
 for which it is the BMI path.
 In the case of socket, the `sun_addr` of `sockaddr_un`
-is `/tmp/` + hash of object or bmi file-path that is converted
+is `/tmp/` + hash of an object or bmi file-path that is converted
 to 16 character hex-string.
 Hash is calculated using [rapidhash](https://github.com/Nicoshev/rapidhash) library.
 All of this is internal detail.

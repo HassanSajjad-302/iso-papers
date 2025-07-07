@@ -648,19 +648,22 @@ make filesystem calls themselves.</p></li>
 <span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> BTCLastMessage</span>
 <span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
-  <p><strong>TODO:</strong> The API design is complete, and is being
-    documented. The following link has sample implementation. The
-    implementation has full code coverage. <a href="https://github.com/HassanSajjad-302/ipc2978api">https://github.com/HassanSajjad-302/ipc2978api</a>.
+  <p>The following link has a sample implementation. The implementation
+    has 100% code coverage. <a href="https://github.com/HassanSajjad-302/ipc2978api">https://github.com/HassanSajjad-302/ipc2978api</a>.
     Below gives a summary of the design and some design rationale.</p>
-  <p>On Windows, named pipes is a feature rich and mature platform for
-    IPC, so it is used. While on Linux, Unix sockets are used. Since the
-    pipe is unidirectional in Linux, we will need two pipes for
+  <p><strong>TODO:</strong> API
+    <code class="sourceCode cpp">IPCManagerBS</code> and
+    <code class="sourceCode cpp">IPCManagerCompiler</code> should be
+    documented here as well.</p>
+  <p>On Windows, named pipes are a feature-rich and mature platform for
+    IPC, so it is used. However, on Linux, Unix sockets are used. As the
+    pipe is unidirectional in Linux, two pipes will be needed for
     bidirectional communication. The name of the pipe is the object-file
     path except for header-units for which it is the BMI path. In the case
     of socket, the <code class="sourceCode cpp">sun_addr</code> of
     <code class="sourceCode cpp">sockaddr_un</code> is <code class="sourceCode cpp"><span class="op">/</span>tmp<span
             class="op">/</span></code>
-    + hash of object or bmi file-path that is converted to 16 character
+    + hash of an object or bmi file-path that is converted to 16 character
     hex-string. Hash is calculated using <a href="https://github.com/Nicoshev/rapidhash">rapidhash</a> library. All
     of this is internal detail. API on top of this is exposed through
     <code class="sourceCode cpp">IPCManagerBS</code> and
